@@ -64,7 +64,7 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(swaggerDocs, {
     swaggerOptions: {
-      persistAuthorization: true // Ensure the JWT token persists in Swagger UI
+      persistAuthorization: true
     }
   })
 );
@@ -74,11 +74,11 @@ app.get('/', (req: Request, res: Response) => {
     <h1>Welcome to my Backend</h1>
   `);
 });
-app.use(api_prefix, filter.authFilter, protectedProductsRoute );
 
 app.use(api_prefix, productRoutes);
 app.use(api_prefix, authRoutes);
 
+app.use(api_prefix, filter.authFilter, filter.authorizeRole('Manager'), protectedProductsRoute );
 
 // Step 8. Error middleware for handling errors globally
 app.use(errorMiddleware);
@@ -90,7 +90,7 @@ const httpsOptions: https.ServerOptions = {
 };
 
 // Step 10. Create and start the HTTPS server
-const port = config.PORT || 3000; // Provide a fallback port
+const port = config.PORT || 3000; 
 https.createServer(httpsOptions, app).listen(port, () => {
   console.log(`Server is running on https://localhost:${port}`);
 });
@@ -100,13 +100,13 @@ process.on('SIGINT', async () => {
   console.log('Caught interrupt signal (Ctrl + C). Shutting down gracefully...');
 
   try {
-    await ModelContext.emptyJson();  // Ensure that this completes; invoke as a static method if it's static
+    await ModelContext.emptyJson();  
     console.log('ModelContext emptied successfully.');
   } catch (error) {
     console.error('Error while emptying ModelContext:', error);
   }
 
-  process.exit(0);  // Exit the process after emptyJson finishes
+  process.exit(0);  
 });
 
 export default app;

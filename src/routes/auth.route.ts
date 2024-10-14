@@ -9,7 +9,7 @@ const router = Router();
  *   post:
  *     summary: Authenticate user
  *     security: []
- *     description: Authenticates a user based on email and password
+ *     description: Authenticates a user based on email and password, returning a JWT token and the user's role.
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -28,7 +28,20 @@ const router = Router();
  *                 example: P@ssw0rd123
  *     responses:
  *       200:
- *         description: Successful authentication
+ *         description: Successful authentication with JWT token and role.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT token for authentication
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 role:
+ *                   type: string
+ *                   description: The role of the authenticated user
+ *                   example: Employee
  *       400:
  *         description: Bad request
  *       401:
@@ -44,7 +57,7 @@ router.post('/auth', AuthController.Authenticate);
  *   post:
  *     summary: Register new user
  *     security: []
- *     description: Creates a new user account with email, password, and name
+ *     description: Creates a new user account with email, password, name, and role.
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -66,6 +79,11 @@ router.post('/auth', AuthController.Authenticate);
  *                 type: string
  *                 description: User's password
  *                 example: P@ssw0rd123
+ *               role:
+ *                 type: string
+ *                 description: Role for the new user (Employee or Manager)
+ *                 enum: [Employee, Manager]
+ *                 example: Employee
  *     responses:
  *       201:
  *         description: Successfully registered new user
@@ -77,5 +95,6 @@ router.post('/auth', AuthController.Authenticate);
  *         description: Internal server error
  */
 router.post('/register', AuthController.Register);
+
 
 export default router;

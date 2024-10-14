@@ -17,12 +17,13 @@ export class AuthService {
                 password: registrationDto.password,
                 name: registrationDto.name,
                 id: -1,
+                role: registrationDto.role
             });
     
             const token = jwt.sign({ username: registrationDto.username }, config.SECRET_KEY ?? "", { expiresIn: '1h' });
     
             return {
-                code: 200,
+                code: 201,
                 jwt: token,
                 message: "Successfully Registered."
             };

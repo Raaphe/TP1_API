@@ -1,7 +1,6 @@
 import * as writer from "fs";
 import { Product } from "./product.model";
 import { User } from "../interfaces/user.interface";
-import { debug, log } from "console";
 import axios from "axios";
 import { logger } from "../utils/logger";
 import { hashPassword } from '../utils/security.utils';
@@ -135,6 +134,14 @@ export class ModelContext {
         }
     }
 
+    public static async deleteProductById(id: number) : Promise<void> {
+        const index = this.products.findIndex(product => product.id === id);
+        if (index !== -1) {
+          this.products.splice(index, 1); 
+        }
+        await this.persistDataToJson();
+    }
+
     public static async fetchProducts(): Promise<void> {
         if (this.hasStarted) {
             console.log("Products have already been fetched, skipping...");
@@ -175,38 +182,39 @@ export class ModelContext {
     // === USERS ===
 
     /**
-     * Saves or updates a user to the context. 
-     * Takes care of hashing and cleansing the password.
-     * @param userToAdd the user to add to the json/context.
+     * Saves a new user to the context.
+     * Ensures that the email is unique and validates the email format.
+     * Hashes the password before saving.
+     * @param userToAdd The user to add to the json/context.
      */
     public static async saveUser(userToAdd: User, triggerRefresh: boolean = true) {
-            
-        var user = this.users.find(p => p.id === userToAdd.id);
-
-        if (!(user === null || user === undefined)) {
-            user.name = userToAdd.name;
-            user.password = await hashPassword(userToAdd.password.trim());
-            user.username = userToAdd.username;
-
-            logger.info(`saving ${user.name}`);
-        } else if (userToAdd.id === null || userToAdd.id === undefined || userToAdd.id < 0) {
-            user = userToAdd;
-            user.password = await hashPassword(userToAdd.password.trim());
-            user.id = this.users.length + 1;        
-            logger.info(`saving ${user.name}`);
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(userToAdd.username.trim())) {
+            throw new Error('Invalid email format');
         }
 
-        this.users.push(userToAdd);    
+        const existingUser = this.users.find(p => p.username === userToAdd.username.trim());
+        if (existingUser) {
+            throw new Error('Email already exists');
+        }
+
+        const newUser = {
+            ...userToAdd,
+            id: this.users.length + 1,
+            password: await hashPassword(userToAdd.password.trim()),
+        };
+
+        this.users.push(newUser);
+        logger.info(`New user ${newUser.name} added successfully`);
 
         if (triggerRefresh) {
             await this.persistDataToJson();
         }
-
-        return;
+        return newUser;
     }
 
-    public static getUserById() {
-
+    public static getUserByEmail(email: string) {
+        return this.users.find(u => u.username === email);
     }
 
     public static getAllUsers() : User[] {

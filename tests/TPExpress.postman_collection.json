@@ -1,0 +1,193 @@
+{
+	"info": {
+		"_postman_id": "2d100744-f430-4b2c-851d-ee27e8445014",
+		"name": "TPExpress",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "31992732"
+	},
+	"item": [
+		{
+			"name": "Successful Auth",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"P@ssw0rd123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://localhost:3000/api/v1/auth"
+			},
+			"response": []
+		},
+		{
+			"name": "Unsuccessful Auth",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"raph@info.com\",\n    \"password\": \"abc-123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://localhost:3000/api/v1/auth"
+			},
+			"response": []
+		},
+		{
+			"name": "Successful Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"success@info.com\",\n  \"password\": \"P@ssw0rd123\",\n  \"role\": \"Employee\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://localhost:3000/api/v1/register"
+			},
+			"response": []
+		},
+		{
+			"name": "Unsuccessful Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"user@example.com\",\n  \"password\": \"P@ssw0rd123\",\n  \"role\": \"Employee\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://localhost:3000/api/register"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Products With Filters",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:3000/api/v1/products?minPrice=5&maxPrice=1000&maxStock=1000&minStock=0",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"v1",
+						"products"
+					],
+					"query": [
+						{
+							"key": "minPrice",
+							"value": "5"
+						},
+						{
+							"key": "maxPrice",
+							"value": "1000"
+						},
+						{
+							"key": "maxStock",
+							"value": "1000"
+						},
+						{
+							"key": "minStock",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Products",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://localhost:3000/api/v1/products"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Product",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3Mjg4NzU3MTEsImV4cCI6MTcyODg3OTMxMX0.61yXjmPXoXF2bM7Jh2Sz5mez_AYToYzPhVouaqw__K8"
+					}
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": "https://localhost:3000/api/v1/products/3"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Product",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Product Name\",\r\n  \"description\": \"This is a description of the product.\",\r\n  \"price\": 99.99,\r\n  \"quantity\": 10\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://localhost:3000/api/v1/products"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Product",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXJAZXhhbXBsZS5jb20iLCJpYXQiOjE3Mjg4NzU3MTEsImV4cCI6MTcyODg3OTMxMX0.61yXjmPXoXF2bM7Jh2Sz5mez_AYToYzPhVouaqw__K8"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"string\",\r\n  \"description\": \"string\",\r\n  \"price\": 0,\r\n  \"quantity\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://localhost:3000/api/v1/products/1"
+			},
+			"response": []
+		}
+	]
+}

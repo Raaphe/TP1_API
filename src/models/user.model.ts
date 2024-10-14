@@ -1,3 +1,4 @@
+import { Role } from '../interfaces/role.interface';
 import { User } from '../interfaces/user.interface';
 
 export class UserModel implements User {
@@ -6,6 +7,6 @@ export class UserModel implements User {
     public name: string, 
     public username: string,
     public password: string,
-    public role: string,
+    public role: Role,
   ) {};
 }
