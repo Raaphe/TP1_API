@@ -5,6 +5,8 @@ import axios from "axios";
 import { logger } from "../../utils/logger";
 import { hashPassword } from '../../utils/security.utils';
 import { IProduct } from "../../interfaces/product.interface";
+import GetProductsPageDto from "../../payloads/dto/getProductPage.dto";
+import { privateDecrypt } from "crypto";
 
 interface FakeStoreApiProduct {
     "title": string,
@@ -138,6 +140,22 @@ export class ModelContext {
         }
     }
 
+    public static async updateProduct(productToUpdate: IProduct) : Promise<IProduct | null> {
+        if (parseInt(productToUpdate._id.trim()) <= 0 || productToUpdate._id.trim() === "") {
+            return null;
+        }
+        
+        var product = this.getProductById(parseInt(productToUpdate._id));
+        if (product === null ) {
+            return null;
+        }
+
+        await this.deleteProductById(parseInt(product?._id ?? "0"));
+        this.products.push(productToUpdate);
+        await this.persistDataToJson();
+        return productToUpdate;
+    }   
+
     public static async fetchProducts(): Promise<void> {
         if (this.hasStarted) {
             console.log("Products have already been fetched, skipping...");
@@ -167,12 +185,24 @@ export class ModelContext {
         await this.persistDataToJson("=== Fetched Products ===");
     }
 
-    public static getAllProducts(): IProduct[] {
-        return this.products;
+    public static async deleteProductById(productId: number) : Promise<boolean> {
+        let initSize = this.products.length;
+        this.products.filter(p => p._id === productId.toString());
+        await this.persistDataToJson()
+        return initSize <= this.products.length;
     }
+    public static getAllProducts(dto: GetProductsPageDto): IProduct[] {
+        return this.products.filter(p => (
+            typeof p === 'object' && p !== null &&
+            'price' in p && 'quantity' in p &&
+            p.price >= (dto.minPrice ?? 0) && p.price <= (dto.maxPrice ?? 0) &&
+            p.quantity >= (dto.minStock ?? 0) && p.quantity <= (dto.maxStock ?? 0)
+        ));
+    }
+    
 
-    public static getProductById(id: string): IProduct | undefined {
-        return this.products.find(product => product._id === id);
+    public static getProductById(id: number): IProduct | undefined {
+        return this.products.find(product => product._id === id.toString());
     }
 
     // === USERS ===

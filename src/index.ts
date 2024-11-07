@@ -6,6 +6,7 @@ import { logger } from './utils/logger';
 import Product from './models/product.model';
 
 const PORT = config.PORT;
+const CLUSTER_URL = config.CLUSTER_URL || "mongodb+srv://raphaelpaquin19:banana78@cluster0.sdueo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const connectOptions: ConnectOptions = {
     dbName: "products",
     serverApi: { version: "1", deprecationErrors: true, strict: true }
@@ -14,9 +15,29 @@ const connectOptions: ConnectOptions = {
 const run = async () => {
     logger.info(`=== connecting to : ${config.CLUSTER_URL} ===`);
 
-    await connect(config.CLUSTER_URL ?? "", connectOptions);
+    // await seed(); // Run this to seed the database
 
-    // Array of fictitious product names
+    await connect(CLUSTER_URL, connectOptions);
+}
+
+run().catch(err => logger.error(err));
+
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "Connection error to mongo db"));
+db.once('open', () => {
+    console.log('=== Connected to MongoDb Collection ===');
+});
+
+export default db;
+
+// Démarrer le serveur
+app.listen(PORT, () => {
+    console.log(`Server is running on https://localhost:${PORT}`);
+});
+
+
+// Used to seed our collection 
+const seed = async () => {
     const productNames = [
         "Eco-Friendly Bamboo Desk", "Ergonomic Office Chair", "Adjustable Standing Desk",
         "Solid Oak Bookshelf", "Compact Computer Desk", "Leather Executive Chair",
@@ -30,13 +51,12 @@ const run = async () => {
         "Minimalist Scandinavian Desk", "Classic Roll-Top Desk", "Compact Rolling Cart"
     ];
 
-    // Save each product in the array to the database
     for (let i = 0; i < productNames.length; i++) {
         const productData = {
             description: `A high-quality piece of furniture, perfect for enhancing your workspace. Item ${i + 1}`,
             name: productNames[i],
-            price: Math.floor(Math.random() * 500) + 50,  // Random price between 50 and 550
-            quantity: Math.floor(Math.random() * 10) + 1,  // Random quantity between 1 and 10
+            price: Math.floor(Math.random() * 500) + 50,  
+            quantity: Math.floor(Math.random() * 10) + 1, 
         };
         const product = new Product(productData);
         await product.save();
@@ -45,16 +65,3 @@ const run = async () => {
 
     logger.info('All products have been saved to the database.');
 }
-
-run().catch(err => logger.error(err));
-
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "Connection error to mongo db"));
-db.once('open', () => {
-    console.log('=== Connected to MongoDb Collection ===');
-});
-
-// Démarrer le serveur
-app.listen(PORT, () => {
-    console.log(`Server is running on https://localhost:${PORT}`);
-});

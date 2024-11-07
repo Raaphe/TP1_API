@@ -87,16 +87,16 @@ app.use(errorMiddleware);
 // Step 9. HTTPS server options
 logger.info(config.CERT_CERT);
 
-const httpsOptions: https.ServerOptions = {
-  key: fs.readFileSync(path.resolve(config.CERT_KEY ?? "")),
-  cert: fs.readFileSync(path.resolve(config.CERT_CERT ?? "")),
-};
+// const httpsOptions: https.ServerOptions = {
+//   key: fs.readFileSync(path.resolve(config.CERT_KEY ?? "")),
+//   cert: fs.readFileSync(path.resolve(config.CERT_CERT ?? "")),
+// };
 
 // Step 10. Create and start the HTTPS server
-const port = config.PORT || 3000; // Provide a fallback port
-https.createServer(httpsOptions, app).listen(port, () => {
-  console.log(`Server is running on https://localhost:${port}`);
-});
+// const port = config.PORT || 3000; // Provide a fallback port
+// https.createServer(httpsOptions, app).listen(port, () => {
+//   console.log(`Server is running on https://localhost:${port}`);
+// });
 
 // Step 11. Graceful shutdown handler
 process.on('SIGINT', async () => {
