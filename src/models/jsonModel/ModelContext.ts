@@ -1,10 +1,10 @@
 import * as writer from "fs";
-import { Product } from "./product.model";
-import { User } from "../interfaces/user.interface";
-import { debug, log } from "console";
+import Product  from "../product.model";
+import { User } from "../../interfaces/user.interface";
 import axios from "axios";
-import { logger } from "../utils/logger";
-import { hashPassword } from '../utils/security.utils';
+import { logger } from "../../utils/logger";
+import { hashPassword } from '../../utils/security.utils';
+import { IProduct } from "../../interfaces/product.interface";
 
 interface FakeStoreApiProduct {
     "title": string,
@@ -15,11 +15,14 @@ interface FakeStoreApiProduct {
 }
 
 
+/**
+ * This class will only be used for saving products to the json file, `data.json`.
+ */
 export class ModelContext {
 
     private static jsonPath: string = "";
     private static users: User[] = [];
-    private static products: Product[] = [];
+    private static products: IProduct[] = [];
     private static hasStarted: boolean = false;// This attribute will be checked in the `app.ts` to prevent fetching products everytime I refresh.
 
     constructor(jsonPath: string) {
@@ -117,8 +120,8 @@ export class ModelContext {
      * Creates or updates the product to add.
      * @param productToSave The product to add.
      */
-    public static async saveProduct(productToSave: Product, triggerUpdate: boolean = true): Promise<void> {
-        const product = this.products.find(p => p.id === productToSave.id);
+    public static async saveProduct(productToSave: IProduct, triggerUpdate: boolean = true): Promise<void> {
+        const product = this.products.find(p => p._id === productToSave._id);
 
         if (product) {
             product.description = productToSave.description;
@@ -126,7 +129,7 @@ export class ModelContext {
             product.price = productToSave.price;
             product.quantity = productToSave.quantity;
         } else {
-            productToSave.id = this.products.length + 1;
+            productToSave._id = (this.products.length + 1).toString();
             this.products.push(productToSave);
         }
 
@@ -145,12 +148,12 @@ export class ModelContext {
             let res: FakeStoreApiProduct[] = (await axios.get("https://api.escuelajs.co/api/v1/products")).data;
             res.forEach(product => {
                 this.saveProduct(
-                    new Product(
-                        this.products.length + 1,
-                        product.title,
-                        product.price,
-                        product.description,
-                        generateRandomNumber(0, 1000)
+                    new Product({
+                        description: product.description,
+                        id: (this.products.length + 1).toString(),
+                        name: product.title,
+                        price: product.price,
+                        quantity: generateRandomNumber(0, 1000)}
                     ),
                     false // Disable automatic persistence for better performance
                 );
@@ -164,12 +167,12 @@ export class ModelContext {
         await this.persistDataToJson("=== Fetched Products ===");
     }
 
-    public static getAllProducts(): Product[] {
+    public static getAllProducts(): IProduct[] {
         return this.products;
     }
 
-    public static getProductById(id: number): Product | undefined {
-        return this.products.find(product => product.id === id);
+    public static getProductById(id: string): IProduct | undefined {
+        return this.products.find(product => product._id === id);
     }
 
     // === USERS ===

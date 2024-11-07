@@ -10,11 +10,12 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import AuthenticationFilter from './middlewares/auth.middleware';
 import { config } from './config/config';
-import { ModelContext } from './models/ModelContext';
+import { ModelContext } from './models/jsonModel/ModelContext';
+import { logger } from './utils/logger';
 
 // Step 1. Create an instance of AuthenticationFilter
 const filter = new AuthenticationFilter();
-const util = new ModelContext("src/models/data.json");
+const util = new ModelContext("src/models/jsonModel/data.json");
 const app = express();
 const version = 1;
 export const api_prefix = `/api/v${version}`;
@@ -84,9 +85,11 @@ app.use(api_prefix, authRoutes);
 app.use(errorMiddleware);
 
 // Step 9. HTTPS server options
+logger.info(config.CERT_CERT);
+
 const httpsOptions: https.ServerOptions = {
-  key: fs.readFileSync(path.resolve(__dirname, config.CERT_KEY || 'config/certificates/key.pem')),
-  cert: fs.readFileSync(path.resolve(__dirname, config.CERT_CERT || 'config/certificates/cert.pem')),
+  key: fs.readFileSync(path.resolve(config.CERT_KEY ?? "")),
+  cert: fs.readFileSync(path.resolve(config.CERT_CERT ?? "")),
 };
 
 // Step 10. Create and start the HTTPS server

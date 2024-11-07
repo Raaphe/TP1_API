@@ -5,7 +5,7 @@ import { User } from '../interfaces/user.interface';
 import { verifyPassword } from '../utils/security.utils';
 import AuthenticationResponseObject from '../payloads/response/authResponseObject.vm';
 import { config } from "../config/config"
-import { ModelContext } from '../models/ModelContext';
+import { ModelContext } from '../models/jsonModel/ModelContext';
 import { logger } from '../utils/logger';
 
 export class AuthService {
@@ -19,7 +19,7 @@ export class AuthService {
                 id: -1,
             });
     
-            const token = jwt.sign({ username: registrationDto.username }, config.SECRET_KEY ?? "", { expiresIn: '1h' });
+            const token = jwt.sign({ username: registrationDto.username }, config.JWT_SECRET ?? "", { expiresIn: '1h' });
     
             return {
                 code: 200,
@@ -50,7 +50,7 @@ export class AuthService {
         }
     
         // Génération d'un JWT
-        const token = jwt.sign({ username: user.username }, config.SECRET_KEY ?? "", { expiresIn: '1h' });
+        const token = jwt.sign({ username: user.username }, config.JWT_SECRET ?? "", { expiresIn: '1h' });
         return {
             code: 200,
             message: "Logged in Successfully",

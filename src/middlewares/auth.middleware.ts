@@ -25,7 +25,7 @@ export default class AuthenticationFilter {
         console.log("token -> " + token);
         
         try {
-            const decoded = jwt.verify(token, config.SECRET_KEY);
+            const decoded = jwt.verify(token, config.JWT_SECRET);
             console.log("decoded -> " + JSON.stringify(decoded) + "\n");
             
             req.user = decoded;

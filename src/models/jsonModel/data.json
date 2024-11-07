@@ -1,0 +1,18 @@
+{
+  "hasStarted": false,
+  "users": [
+    {
+      "id": 1,
+      "username": "raph@info.com",
+      "password": "abc-123",
+      "name": "raph"
+    },
+    {
+      "username": "user@example.com",
+      "password": "$2a$10$Il.61jOywoGBIroXE9nFk.JOR2BHWaR0mmngfC9rETb.K2r9WIofe",
+      "name": "John Doe",
+      "id": 2
+    }
+  ],
+  "products": []
+}

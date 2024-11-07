@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import NodeRSA from 'node-rsa';
 import { config } from '../config/config';
 
-const secretKey = config.SECRET_KEY;
+const secretKey = config.JWT_SECRET;
 const iv = Buffer.alloc(16, 0);
 
 export async function hashPassword(password: string): Promise<string> {
