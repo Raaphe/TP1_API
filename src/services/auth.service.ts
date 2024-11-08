@@ -3,14 +3,14 @@ import RegistrationDTO from '../payloads/dto/register.dto';
 import LoginDTO from '../payloads/dto/login.dto';
 import { User } from '../interfaces/user.interface';
 import { verifyPassword } from '../utils/security.utils';
-import AuthenticationResponseObject from '../payloads/response/authResponseObject.vm';
 import { config } from "../config/config"
 import { ModelContext } from '../models/jsonModel/ModelContext';
 import { logger } from '../utils/logger';
+import ResponseObject from '../interfaces/response.interface';
 
 export class AuthService {
     
-    static async register(registrationDto: RegistrationDTO): Promise<AuthenticationResponseObject> {
+    static async register(registrationDto: RegistrationDTO): Promise<ResponseObject<string>> {
         try {
             await ModelContext.saveUser({
                 username: registrationDto.username,
@@ -23,30 +23,30 @@ export class AuthService {
     
             return {
                 code: 200,
-                jwt: token,
+                data: token,
                 message: "Successfully Registered."
             };
         } catch (e: any) {
             logger.error(`Error in register method: ${e.message}`, e);
             return {
                 code: 400,
-                jwt: "",
+                data: "",
                 message: e.message || 'An error occurred during registration',
             };
         }
     }
     
 
-    static async authenticate(loginDto: LoginDTO) : Promise<AuthenticationResponseObject> {
+    static async authenticate(loginDto: LoginDTO) : Promise<ResponseObject<string>> {
         const user = ModelContext.getAllUsers().find(u => u.username === loginDto.username.trim());
 
         if (!user) {
-            return {code : 400, message: 'Utilisateur non trouvé', jwt:""}
+            return {code : 400, message: 'Utilisateur non trouvé', data:""}
         }
         
         const isValidPassword = await verifyPassword(loginDto.password.trim(), user.password);
         if (!isValidPassword) {
-            return {code : 400, message: 'Mot de passe incorrect', jwt: ""}
+            return {code : 400, message: 'Mot de passe incorrect', data: ""}
         }
     
         // Génération d'un JWT
@@ -54,7 +54,7 @@ export class AuthService {
         return {
             code: 200,
             message: "Logged in Successfully",
-            jwt: token,
+            data: token,
         }
     }
 }

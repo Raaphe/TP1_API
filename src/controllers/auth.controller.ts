@@ -11,7 +11,7 @@ export class AuthController {
             });
 
             res.status(serviceRes.code).json({
-                jwt: serviceRes.jwt,
+                jwt: serviceRes.data, // the jwt
                 message: serviceRes.message
             });
         } catch (error) {
@@ -25,7 +25,7 @@ export class AuthController {
             const serviceRes = await AuthService.authenticate({ password: req.body.password, username: req.body.email });
 
             res.status(serviceRes.code).json({
-                jwt: serviceRes.jwt,
+                jwt: serviceRes.data, // the jwt
                 message: serviceRes.message
             });
         } catch (error) {

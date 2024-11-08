@@ -6,7 +6,6 @@ import { logger } from "../../utils/logger";
 import { hashPassword } from '../../utils/security.utils';
 import { IProduct } from "../../interfaces/product.interface";
 import GetProductsPageDto from "../../payloads/dto/getProductPage.dto";
-import { privateDecrypt } from "crypto";
 
 interface FakeStoreApiProduct {
     "title": string,
@@ -21,7 +20,7 @@ interface FakeStoreApiProduct {
  * This class will only be used for saving products to the json file, `data.json`.
  */
 export class ModelContext {
-
+    
     private static jsonPath: string = "";
     private static users: User[] = [];
     private static products: IProduct[] = [];
@@ -118,6 +117,19 @@ export class ModelContext {
 
     // === PRODUCTS ===
 
+    static async createProduct(product: IProduct): Promise<IProduct | PromiseLike<IProduct | null | undefined> | null | undefined> {
+        this.products.forEach(p => {
+            if (p._id === product._id) {
+                return null;
+            }
+        });
+
+        product._id = (this.products.length + 1).toString();
+        this.products.push(product);
+        await this.persistDataToJson();
+        return product;
+    }
+
     /**
      * Creates or updates the product to add.
      * @param productToSave The product to add.
@@ -168,7 +180,7 @@ export class ModelContext {
                 this.saveProduct(
                     new Product({
                         description: product.description,
-                        id: (this.products.length + 1).toString(),
+                        _id: (this.products.length + 1).toString(),
                         name: product.title,
                         price: product.price,
                         quantity: generateRandomNumber(0, 1000)}

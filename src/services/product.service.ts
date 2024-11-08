@@ -4,15 +4,51 @@ import GetProductsPageDto from "../payloads/dto/getProductPage.dto";
 import db from "..";
 import { IProduct } from "../interfaces/product.interface";
 import { ModelContext } from "../models/jsonModel/ModelContext";
+import { logger } from "../utils/logger";
 
 export class ProductService {
 
-    static getProductById(productId: number) : IProduct {
+    static getProductById(productId: number): IProduct {
         return ModelContext.getProductById(productId) ?? new Product();
     }
 
-    // POST v1
-    static async updateProduct(product: IProduct) : Promise<ResponseObject<IProduct | null>> {
+    /**
+     * POST PRODUCTS V1.
+     * @param product The product to create.
+     * @returns The created product.
+     */
+    static async create(product: IProduct): Promise<ResponseObject<IProduct | null>> {
+        try {
+            var createdProduct = await ModelContext.createProduct(product);
+
+            if (createdProduct === null) { // if product already existsed
+                return {
+                    code: 409,
+                    message: "Product already exists",
+                    data: null,
+                }
+            }
+
+            return {
+                code: 200,
+                message: "Successfully updated product",
+                data: createdProduct,
+            };
+        } catch (e) {
+            return {
+                code: 400,
+                message: "Successfully updated product",
+                data: null
+            };
+        }
+    }
+
+    /**
+     * PUT PRODUCTS v1.
+     * @param product The product to update.
+     * @returns The updated product.
+     */
+    static async updateProduct(product: IProduct): Promise<ResponseObject<IProduct | null>> {
         try {
             return {
                 code: 200,
@@ -28,25 +64,12 @@ export class ProductService {
         }
     }
 
-    // PUT v1
-    static async updateProduct(product: IProduct) : Promise<ResponseObject<IProduct | null>> {
-        try {
-            return {
-                code: 200,
-                message: "Successfully updated product",
-                data: await ModelContext.updateProduct(product) ?? new Product()
-            };
-        } catch (e) {
-            return {
-                code: 400,
-                message: "Successfully updated product",
-                data: null
-            };
-        }
-    }
-
-    // GET v1
-    static getAllProducts(dto: GetProductsPageDto) : ResponseObject<IProduct[] | null> {
+    /**
+     * GET PRODUCTS v1.
+     * @param dto The filters to apply to get all request.
+     * @returns A promise of a list of products or null.
+     */
+    static getAllProducts(dto: GetProductsPageDto): ResponseObject<IProduct[] | null> {
         try {
             return {
                 code: 200,
@@ -62,8 +85,12 @@ export class ProductService {
         }
     }
 
-    // DELETE v1
-    static async deleteProductById(id: number) : Promise<ResponseObject<void>> {
+    /**
+     * DELETE PRODUCTS v1 
+     * @param id the id to delete.
+     * @returns nothing.
+     */
+    static async deleteProductById(id: number): Promise<ResponseObject<void>> {
         return await ModelContext.deleteProductById(id).then(res => {
             if (res) {
                 return {
@@ -78,22 +105,27 @@ export class ProductService {
             }
 
         })
-        .catch(e => {
-            return {
-                code: 500,
-                message: `Error deleting product \n${e}`
-            }
-        });
+            .catch(e => {
+                return {
+                    code: 500,
+                    message: `Error deleting product \n${e}`
+                }
+            });
     }
 
+    // API V2 SERVICE METHODS
 
-
-    static async getAllProductsV2(dto: GetProductsPageDto) : Promise<ResponseObject<IProduct[]>> {
+    /**
+     * GET PRODUCTS v2
+     * @param dto The dto that contains the query filters.
+     * @returns A promise of a list of products.
+     */
+    static async getAllProductsV2(dto: GetProductsPageDto): Promise<ResponseObject<IProduct[]>> {
         try {
             return {
                 code: 200,
                 message: "Successfully fetched products",
-                data: await Product.find({"price" : {"$gt": dto.minPrice, "$lte": dto.maxPrice}, "quantity" : {"$gt" : dto.minStock, "$lte": dto.maxStock}})
+                data: await Product.find({ "price": { "$gt": dto.minPrice, "$lte": dto.maxPrice }, "quantity": { "$gt": dto.minStock, "$lte": dto.maxStock } })
             };
         } catch (e) {
             return {
@@ -104,9 +136,58 @@ export class ProductService {
         }
     }
 
-    static async deleteProductByIdV2(productId: string) : Promise<ResponseObject<Boolean>> {
+    /**
+     * PUT PRODUCTS v2.
+     * @param product The product to save.
+     */
+    static async updateProductV2(product: IProduct) : Promise<IProduct | null> {        
         try {
-            let res = await Product.deleteOne({id : productId});
+            return await Product.updateOne(
+                {"_id": product._id}, 
+                product,
+                (err: any, docs: any) => {
+                    if (err) {
+                        throw new Error(err +  "\nError saving document.")
+                    } else {
+                        console.log(`+=== Saved Doc :\n${docs}\n===+`);
+                    }
+                }
+            ).then(_ => {
+                return product;
+            })
+            .catch(e => {
+                throw new Error(e +  "\nError calling cluster.")
+            });
+        } catch (e) {
+            console.error(e);
+            return null;
+        }
+    }
+
+    /**
+     * POST PRODUCTS v2.
+     * @param product The product to save.
+     */
+    static async createProductV2(product: IProduct): Promise<IProduct> {
+        try {
+            const result = await Product.create(product);
+            console.log(`+=== Saved Doc :\n${result}\n===+`);
+            return result;
+        } catch (e) {
+            console.error(e);
+            throw new Error('Error creating product');
+        }
+    }
+    
+    
+    /**
+     * DELETE PRODUCTS v2
+     * @param productId The product id to delete.
+     * @returns Whether the product was deleted or not.
+     */
+    static async deleteProductByIdV2(productId: string): Promise<ResponseObject<Boolean>> {
+        try {
+            let res = await Product.deleteOne({ "_id": productId });
             return {
                 code: 200,
                 message: "Successfully deleted.",
