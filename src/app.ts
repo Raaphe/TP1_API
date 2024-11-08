@@ -19,6 +19,8 @@ const filter = new AuthenticationFilter();
 const util = new ModelContext("src/models/jsonModel/data.json");
 const app = express();
 const version = 1;
+const port = config.PORT || 3000;
+
 export const api_prefix = `/api/v${version}`;
 
 // Step 2. Middleware for JSON parsing
@@ -93,8 +95,8 @@ logger.info(config.CERT_CERT);
 
 if (config.ENV === "production") {
   // Démarrer le serveur
-  app.listen(config.PORT, () => {
-    console.log(`Server is running on https://localhost:${config.PORT}`);
+  app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
   });
 } else {
 
@@ -104,7 +106,6 @@ if (config.ENV === "production") {
   };
 
   // Step 10. Create and start the HTTPS server
-  const port = config.PORT || 3000;
   https.createServer(httpsOptions, app).listen(port, () => {
     console.log(`Server is running on https://${IP_ADDR}:${port}`);
   });
