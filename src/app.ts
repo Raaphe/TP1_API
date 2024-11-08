@@ -92,6 +92,12 @@ logger.info(config.CERT_CERT);
 
 
 if (config.ENV === "production") {
+  // Démarrer le serveur
+  app.listen(config.PORT, () => {
+    console.log(`Server is running on https://localhost:${config.PORT}`);
+  });
+} else {
+
   const httpsOptions: https.ServerOptions = {
     key: fs.readFileSync(path.resolve(config.CERT_KEY ?? "")),
     cert: fs.readFileSync(path.resolve(config.CERT_CERT ?? "")),
@@ -102,12 +108,7 @@ if (config.ENV === "production") {
   https.createServer(httpsOptions, app).listen(port, () => {
     console.log(`Server is running on https://${IP_ADDR}:${port}`);
   });
-} else {
-  // Démarrer le serveur
-  app.listen(config.PORT, () => {
-    console.log(`Server is running on https://localhost:${config.PORT}`);
-  });
-
+  
 }
 
 // Step 11. Graceful shutdown handler
