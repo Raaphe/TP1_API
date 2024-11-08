@@ -30,12 +30,6 @@ db.once('open', () => {
 
 export default db;
 
-// Démarrer le serveur
-app.listen(PORT, () => {
-    console.log(`Server is running on https://localhost:${PORT}`);
-});
-
-
 // Used to seed our collection 
 const seed = async () => {
     const productNames = [

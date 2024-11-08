@@ -28,7 +28,7 @@ const IP_ADDR = getLocalIPAddress();
 
 // Step 3. Define Swagger options
 const swaggerOptions = {
-  definition: { 
+  definition: {
     openapi: '3.0.0',
     info: {
       title: 'Your API',
@@ -43,20 +43,20 @@ const swaggerOptions = {
     ],
     components: {
       securitySchemes: {
-        bearerAuth: {  
+        bearerAuth: {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
         },
       },
-    },    
+    },
     security: [
       {
         BearerAuth: [],
       },
     ],
   },
-  apis: [path.resolve(__dirname, './routes/*.route.ts')], 
+  apis: [path.resolve(__dirname, './routes/*.route.ts')],
 };
 
 // Step 4. Generate documentation from options
@@ -64,7 +64,7 @@ const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 // Step 5. Serve Swagger documentation at '/api-docs'
 app.use(
-  api_prefix+'/docs',
+  api_prefix + '/docs',
   swaggerUi.serve,
   swaggerUi.setup(swaggerDocs, {
     swaggerOptions: {
@@ -78,7 +78,7 @@ app.get('/', (req: Request, res: Response) => {
     <h1>Welcome to my Backend</h1>
   `);
 });
-app.use(api_prefix, filter.authFilter, protectedProductsRoute );
+app.use(api_prefix, filter.authFilter, protectedProductsRoute);
 
 app.use(api_prefix, productRoutes);
 app.use(api_prefix, authRoutes);
@@ -90,16 +90,25 @@ app.use(errorMiddleware);
 // Step 9. HTTPS server options
 logger.info(config.CERT_CERT);
 
-const httpsOptions: https.ServerOptions = {
-  key: fs.readFileSync(path.resolve(config.CERT_KEY ?? "")),
-  cert: fs.readFileSync(path.resolve(config.CERT_CERT ?? "")),
-};
 
-// Step 10. Create and start the HTTPS server
-const port = config.PORT || 3000; 
-https.createServer(httpsOptions, app).listen(port, () => {
-  console.log(`Server is running on https://${IP_ADDR}:${port}`);
-});
+if (config.ENV === "production") {
+  const httpsOptions: https.ServerOptions = {
+    key: fs.readFileSync(path.resolve(config.CERT_KEY ?? "")),
+    cert: fs.readFileSync(path.resolve(config.CERT_CERT ?? "")),
+  };
+
+  // Step 10. Create and start the HTTPS server
+  const port = config.PORT || 3000;
+  https.createServer(httpsOptions, app).listen(port, () => {
+    console.log(`Server is running on https://${IP_ADDR}:${port}`);
+  });
+} else {
+  // Démarrer le serveur
+  app.listen(config.PORT, () => {
+    console.log(`Server is running on https://localhost:${config.PORT}`);
+  });
+
+}
 
 // Step 11. Graceful shutdown handler
 process.on('SIGINT', async () => {
@@ -116,16 +125,16 @@ process.on('SIGINT', async () => {
 });
 
 function getLocalIPAddress() {
-    const networkInterfaces = os.networkInterfaces();
-    for (const interfaceName in networkInterfaces) {
-        const addresses = networkInterfaces[interfaceName];
-        for (const address of addresses ?? []) {
-            if (address.family === 'IPv4' && !address.internal) {
-                return address.address;
-            }
-        }
+  const networkInterfaces = os.networkInterfaces();
+  for (const interfaceName in networkInterfaces) {
+    const addresses = networkInterfaces[interfaceName];
+    for (const address of addresses ?? []) {
+      if (address.family === 'IPv4' && !address.internal) {
+        return address.address;
+      }
     }
-    return 'IP address not found';
+  }
+  return 'IP address not found';
 }
 
 export default app;
