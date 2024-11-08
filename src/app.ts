@@ -96,7 +96,7 @@ logger.info(config.CERT_CERT);
 if (config.ENV === "production") {
   // Démarrer le serveur
   app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://0.0.0.0:${port}`);
   });
 } else {
 
