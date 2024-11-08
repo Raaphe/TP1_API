@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import protectedProductsRoute from "./routes/product_protected.route";
 import https from 'https';
 import fs from 'fs';
+import os from 'node:os';
 import path from 'path';
 import productRoutes from './routes/product.route';
 import authRoutes from './routes/auth.route';
@@ -22,6 +23,8 @@ export const api_prefix = `/api/v${version}`;
 
 // Step 2. Middleware for JSON parsing
 app.use(express.json());
+const IP_ADDR = getLocalIPAddress();
+
 
 // Step 3. Define Swagger options
 const swaggerOptions = {
@@ -34,7 +37,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "https://localhost:3000",
+        url: `https://${IP_ADDR}:3000`,
         description: "Development server (HTTPS)"
       }
     ],
@@ -87,16 +90,16 @@ app.use(errorMiddleware);
 // Step 9. HTTPS server options
 logger.info(config.CERT_CERT);
 
-// const httpsOptions: https.ServerOptions = {
-//   key: fs.readFileSync(path.resolve(config.CERT_KEY ?? "")),
-//   cert: fs.readFileSync(path.resolve(config.CERT_CERT ?? "")),
-// };
+const httpsOptions: https.ServerOptions = {
+  key: fs.readFileSync(path.resolve(config.CERT_KEY ?? "")),
+  cert: fs.readFileSync(path.resolve(config.CERT_CERT ?? "")),
+};
 
 // Step 10. Create and start the HTTPS server
-// const port = config.PORT || 3000; // Provide a fallback port
-// https.createServer(httpsOptions, app).listen(port, () => {
-//   console.log(`Server is running on https://localhost:${port}`);
-// });
+const port = config.PORT || 3000; 
+https.createServer(httpsOptions, app).listen(port, () => {
+  console.log(`Server is running on https://${IP_ADDR}:${port}`);
+});
 
 // Step 11. Graceful shutdown handler
 process.on('SIGINT', async () => {
@@ -111,5 +114,18 @@ process.on('SIGINT', async () => {
 
   process.exit(0);  // Exit the process after emptyJson finishes
 });
+
+function getLocalIPAddress() {
+    const networkInterfaces = os.networkInterfaces();
+    for (const interfaceName in networkInterfaces) {
+        const addresses = networkInterfaces[interfaceName];
+        for (const address of addresses ?? []) {
+            if (address.family === 'IPv4' && !address.internal) {
+                return address.address;
+            }
+        }
+    }
+    return 'IP address not found';
+}
 
 export default app;

@@ -24,6 +24,7 @@
     "mongoose": "^8.8.0",
     "node-console-progress-bar-tqdm": "^1.0.4",
     "node-rsa": "^1.1.1",
+    "os": "^0.1.2",
     "path": "^0.12.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
