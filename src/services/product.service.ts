@@ -1,10 +1,8 @@
 import ResponseObject from "../interfaces/response.interface";
 import Product from "../models/product.model";
 import GetProductsPageDto from "../payloads/dto/getProductPage.dto";
-import db from "..";
 import { IProduct } from "../interfaces/product.interface";
 import { ModelContext } from "../models/jsonModel/ModelContext";
-import { logger } from "../utils/logger";
 
 export class ProductService {
 
@@ -140,9 +138,12 @@ export class ProductService {
      * PUT PRODUCTS v2.
      * @param product The product to save.
      */
-    static async updateProductV2(product: IProduct) : Promise<IProduct | null> {        
+    static async updateProductV2(product: IProduct) : Promise<ResponseObject<IProduct | null>> {        
         try {
-            return await Product.updateOne(
+
+            let res: ResponseObject<IProduct | null> = {code: 0,message: "", data: null};
+
+            let updatedProduct = await Product.updateOne(
                 {"_id": product._id}, 
                 product,
                 (err: any, docs: any) => {
@@ -158,9 +159,18 @@ export class ProductService {
             .catch(e => {
                 throw new Error(e +  "\nError calling cluster.")
             });
+
+            res.code = 200;
+            res.data = updatedProduct;
+            res.message = "Updated product sucessfully";
+            return res;
         } catch (e) {
             console.error(e);
-            return null;
+            return {   
+                code: 500,
+                message: e as string,
+                data: null
+            };
         }
     }
 

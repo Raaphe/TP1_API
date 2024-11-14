@@ -5,9 +5,8 @@ const router = Router();
 
 /**
  * @swagger
- * /api/v1/products:
+ * /api/v2/products:
  *   get:
- *     deprecated: true
  *     summary: Retrieves a list of products.
  *     security: []
  *     description: Retrieve a list of products from the API. Can be used to populate a list of products in your system.
@@ -19,7 +18,7 @@ const router = Router();
  *             schema:
  *               type: object
  */
-router.get('/products', ProductController.getProducts);
+router.get('/products', ProductController.getProductsV2);
 
 
 

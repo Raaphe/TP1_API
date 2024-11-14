@@ -9,7 +9,7 @@ export default class CustomRequestParser {
      * @param res The response to be parsed.
      * @returns A response object to be used when routing.
      */
-    public static ParseRequest(res: string) : ResponseObject {
+    public static ParseRequest(res: string) : ResponseObject<null> {
         return {code: parseInt(res.split(":")[0]),message: res.split(":")[1]};
     }
 

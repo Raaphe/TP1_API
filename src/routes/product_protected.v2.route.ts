@@ -5,9 +5,8 @@ const router = Router();
 
 /**
  * @swagger
- * /api/v1/product/{id}:
+ * /api/v2/product/{id}:
  *   delete:
- *     deprecated: true
  *     summary: Deletes a specified product.
  *     description: Deletes a product by its specified ID.
  *     parameters:
@@ -26,13 +25,12 @@ const router = Router();
  *       404:
  *         description: Product not found.
  */
-router.delete('/products/:id', ProtectedProductController.deleteProduct);
+router.delete('/products/:id', ProtectedProductController.deleteProductV2);
 
 /**
  * @swagger
- * /api/v1/product:
+ * /api/v2/product:
  *   post:
- *     deprecated: true
  *     summary: Updates a product.
  *     description: Updates a product with details including name, description, price, and quantity.
  *     requestBody:
@@ -107,13 +105,12 @@ router.delete('/products/:id', ProtectedProductController.deleteProduct);
  *                   description: Error message.
  *                   example: "Internal server error."
  */
-router.put('/product', ProtectedProductController.updateProduct);
+router.put('/product', ProtectedProductController.updateProductV2);
 
 /**
  * @swagger
- * /api/v1/product:
+ * /api/v2/product:
  *   post:
- *     deprecated: true
  *     summary: Creates a new product.
  *     description: Creates a new product with details including name, description, price, and quantity.
  *     requestBody:
@@ -188,6 +185,6 @@ router.put('/product', ProtectedProductController.updateProduct);
  *                   description: Error message.
  *                   example: "Internal server error."
  */
-router.post('/product', ProtectedProductController.createProduct);
+router.post('/product', ProtectedProductController.createProductV2);
 
 export default router;
