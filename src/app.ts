@@ -1,9 +1,11 @@
 import express, { Request, Response, NextFunction } from 'express';
-import protectedProductsRoute from "./routes/product_protected.route";
+import protectedProductsRouteV1 from "./routes/v1/product_protected.route";
+import protectedProductsRouteV2 from "./routes/v2/product_protected.v2.route";
 import os from 'node:os';
 import path from 'path';
-import productRoutes from './routes/product.route';
-import authRoutes from './routes/auth.route';
+import productRoutesV2 from './routes/v2/product.v2.route';
+import productRoutesV1 from './routes/v1/product.route';
+import authRoutes from './routes/v2/auth.route';
 import { errorMiddleware } from './middlewares/error.middleware';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
@@ -15,15 +17,21 @@ import { logger } from './utils/logger';
 // Step 1. Create an instance of AuthenticationFilter
 const filter = new AuthenticationFilter();
 const util = new ModelContext("src/models/jsonModel/data.json");
-const app = express();
+
 const version1 = 1;
 const version2 = 2;
+
+const app = express();
 
 export const api_prefix_v1 = `/api/v${version1}`;
 export const api_prefix_v2 = `/api/v${version2}`;
 
+const v1_router = express.Router();
+const v2_router = express.Router();
+
 // Step 2. Middleware for JSON parsing
 app.use(express.json());
+
 const IP_ADDR = getLocalIPAddress();
 
 // Step 3. Define Swagger options for version 1
@@ -37,7 +45,7 @@ const swaggerOptionsV1 = {
     },
     servers: [
       {
-        url: `https://${IP_ADDR}:3000`,
+        url: `https://${IP_ADDR}:3000/${api_prefix_v1}`,
         description: "Development server (HTTPS) for v1"
       }
     ],
@@ -56,11 +64,11 @@ const swaggerOptionsV1 = {
       },
     ],
   },
-  apis: [path.resolve(__dirname, './routes/*.route.ts')], // Include relevant v1 routes here
+  apis: [path.resolve(__dirname, './routes/v1/*.route.ts')], 
 };
 
 // Step 3a. Define Swagger options for version 2
-const swaggerOptionsV2 = {
+const swaggerOptionsV2: swaggerUi.JsonObject = {
   definition: {
     openapi: '3.0.0',
     info: {
@@ -70,7 +78,7 @@ const swaggerOptionsV2 = {
     },
     servers: [
       {
-        url: `https://${IP_ADDR}:3000`,
+        url: `https://${IP_ADDR}:3000/${api_prefix_v2}`,
         description: "Development server (HTTPS) for v2"
       }
     ],
@@ -89,33 +97,15 @@ const swaggerOptionsV2 = {
       },
     ],
   },
-  apis: [path.resolve(__dirname, './routes/*v2.route.ts')], // Include relevant v2 routes here
+  apis: [path.resolve(__dirname, './routes/v2/*.v2.route.ts')],   
 };
 
-// Step 4. Generate documentation from options
-const swaggerDocsV1 = swaggerJsdoc(swaggerOptionsV1);
-const swaggerDocsV2 = swaggerJsdoc(swaggerOptionsV2);
+// Create handlers for each version separately
+app.use(`${api_prefix_v1}/docs`, swaggerUi.serve);
+app.get(`${api_prefix_v1}/docs`, swaggerUi.serveFiles(swaggerOptionsV1));
 
-// Step 5. Serve Swagger documentation at '/api/v1/docs' and '/api/v2/docs'
-app.use(
-  api_prefix_v1 + '/docs',
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerDocsV1, {
-    swaggerOptions: {
-      persistAuthorization: true // Ensure the JWT token persists in Swagger UI
-    }
-  })
-);
-
-app.use(
-  api_prefix_v2 + '/docs',
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerDocsV2, {
-    swaggerOptions: {
-      persistAuthorization: true // Ensure the JWT token persists in Swagger UI
-    }
-  })
-);
+// app.use(`${api_prefix_v2}/docs`, swaggerUi.serve);
+// app.get(`${api_prefix_v2}/docs`, swaggerUi.setup(swaggerOptionsV2));
 
 app.get('/', (req: Request, res: Response) => {
   res.send(`
@@ -123,11 +113,14 @@ app.get('/', (req: Request, res: Response) => {
   `);
 });
 
+app.use('/api/v1/docs', v1_router);
+app.use('/api/v2/docs', v2_router);
+
 // Middleware to protect routes with authentication
-app.use(api_prefix_v1, filter.authFilter, protectedProductsRoute);
+app.use(api_prefix_v1, filter.authFilter, protectedProductsRouteV1);
 
 // Route registrations for v1 and v2
-app.use(api_prefix_v1, productRoutes);
+app.use(api_prefix_v1, protectedProductsRouteV1);
 app.use(api_prefix_v1, authRoutes);
 
 // Assuming similar logic for v2 if necessary

@@ -1,15 +1,26 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/config';
-import { loggers } from 'winston';
 import { logger } from '../utils/logger';
 
 export default class AuthenticationFilter {
+
     authFilter(req: any, res: Response, next: NextFunction) {
+
+        console.log(`============ URL ============\n${req.url}`);
+        
+        let whitelist = [
+            "/docs"
+        ];
+
+        // Check if the request URL matches any pattern in the whitelist
+        if (whitelist.some(path => req.url.startsWith(path))) {
+            return next(); // Skip authentication and proceed to the next middleware
+        }
+
         const authHeader = req.headers['authorization'];
         
         logger.info(req.headers);
-
 
         if (!authHeader) {
             return res.status(401).json({ message: 'No authorization header provided' });
@@ -26,28 +37,11 @@ export default class AuthenticationFilter {
         
         try {
             const decoded = jwt.verify(token, config.JWT_SECRET);
-            console.log("decoded -> " + JSON.stringify(decoded) + "\n");
-            
-            req.user = decoded;
-            next();
-        } catch (error: any) {
-            return res.status(401).json({
-                message: 'Invalid token',
-                error: error.message,
-                token: token
-            });
+            console.log("Token is valid", decoded);
+            next(); // Token is valid, proceed to the next middleware
+        } catch (error) {
+            console.error("Token verification failed", error);
+            return res.status(403).json({ message: 'Invalid or expired token' });
         }
     }
-    
-
-    authorizeRole(role: string) {
-        return (req: any, res: Response, next: NextFunction) => {
-            if (req.user && req.user.role === role) {
-                next();
-            } else {
-                res.status(403).json({ message: 'Forbidden' });
-            }
-        };
-    }
 }
-
