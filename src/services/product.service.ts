@@ -143,6 +143,12 @@ export class ProductService {
 
             let res: ResponseObject<IProduct | null> = {code: 0,message: "", data: null};
 
+            if (product.quantity < 0 || product.price < 0 || (product.name.length < 2 && product.name.length > 50)) {
+                res.code = 400;
+                res.message = "Invalid product values";
+                return res;
+            }
+
             let updatedProduct = await Product.updateOne(
                 {"_id": product._id}, 
                 product,
@@ -153,10 +159,10 @@ export class ProductService {
                         console.log(`+=== Saved Doc :\n${docs}\n===+`);
                     }
                 }
-            ).then(_ => {
+            ).then((_: any) => {
                 return product;
             })
-            .catch(e => {
+            .catch((e: string) => {
                 throw new Error(e +  "\nError calling cluster.")
             });
 
@@ -178,8 +184,12 @@ export class ProductService {
      * POST PRODUCTS v2.
      * @param product The product to save.
      */
-    static async createProductV2(product: IProduct): Promise<IProduct> {
+    static async createProductV2(product: IProduct): Promise<IProduct | null> {
         try {
+            if (product.quantity < 0 || product.price < 0 || (product.name.length < 2 && product.name.length > 50)) {
+                
+                return null;
+            }
             const result = await Product.create(product);
             console.log(`+=== Saved Doc :\n${result}\n===+`);
             return result;
