@@ -26,8 +26,7 @@ const app = express();
 export const api_prefix_v1 = `/api/v${version1}`;
 export const api_prefix_v2 = `/api/v${version2}`;
 
-const v1_router = express.Router();
-const v2_router = express.Router();
+const router = express.Router();
 
 // Step 2. Middleware for JSON parsing
 app.use(express.json());
@@ -35,7 +34,7 @@ app.use(express.json());
 const IP_ADDR = getLocalIPAddress();
 
 // Step 3. Define Swagger options for version 1
-const swaggerOptionsV1 = {
+const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
@@ -64,48 +63,10 @@ const swaggerOptionsV1 = {
       },
     ],
   },
-  apis: [path.resolve(__dirname, './routes/v1/*.route.ts')], 
+  apis: [path.resolve(__dirname, './routes/v1/*.route.ts'), path.resolve(__dirname, './routes/v2/*.route.ts')], 
 };
 
-// Step 3a. Define Swagger options for version 2
-const swaggerOptionsV2: swaggerUi.JsonObject = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Your API v2',
-      version: '2.0.0',
-      description: 'API v2 documentation with JWT authentication',
-    },
-    servers: [
-      {
-        url: `https://${IP_ADDR}:3000/${api_prefix_v2}`,
-        description: "Development server (HTTPS) for v2"
-      }
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-    },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
-  },
-  apis: [path.resolve(__dirname, './routes/v2/*.v2.route.ts')],   
-};
-
-// Create handlers for each version separately
-app.use(`${api_prefix_v1}/docs`, swaggerUi.serve);
-app.get(`${api_prefix_v1}/docs`, swaggerUi.serveFiles(swaggerOptionsV1));
-
-// app.use(`${api_prefix_v2}/docs`, swaggerUi.serve);
-// app.get(`${api_prefix_v2}/docs`, swaggerUi.setup(swaggerOptionsV2));
+app.use(`/api/docs`, swaggerUi.setup(swaggerOptions));
 
 app.get('/', (req: Request, res: Response) => {
   res.send(`
@@ -113,18 +74,19 @@ app.get('/', (req: Request, res: Response) => {
   `);
 });
 
-app.use('/api/v1/docs', v1_router);
-app.use('/api/v2/docs', v2_router);
+app.use('/api/docs', router);
 
-// Middleware to protect routes with authentication
+
+// V1
 app.use(api_prefix_v1, filter.authFilter, protectedProductsRouteV1);
-
-// Route registrations for v1 and v2
 app.use(api_prefix_v1, protectedProductsRouteV1);
-app.use(api_prefix_v1, authRoutes);
 
-// Assuming similar logic for v2 if necessary
-// app.use(api_prefix_v2, someV2Routes);
+// V2
+app.use(api_prefix_v2, filter.authFilter, protectedProductsRouteV2);
+app.use(api_prefix_v2, protectedProductsRouteV2);
+
+// BOTH
+app.use("/api", authRoutes);
 
 // Step 8. Error middleware for handling errors globally
 app.use(errorMiddleware);

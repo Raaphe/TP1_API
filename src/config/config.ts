@@ -10,4 +10,5 @@ export const config = {
   CERT_KEY: process.env.CERT_KEY_PATH,
   CERT_CERT: process.env.CERT_CERT_PATH,
   CLUSTER_URL : process.env.CLUSTER_URI,
+  CLUSTER_URL_TEST: process.env.DB_URI_TEST
 };

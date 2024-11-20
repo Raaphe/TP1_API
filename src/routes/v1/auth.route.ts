@@ -5,7 +5,7 @@ const router = Router();
 
 /**
  * @swagger
- * /api/v1/auth:
+ * /api/auth:
  *   post:
  *     summary: Authenticate user
  *     security: []

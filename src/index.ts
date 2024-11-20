@@ -12,18 +12,33 @@ import path from 'path';
 const IP_ADDR = getLocalIPAddress();
 const port = config.PORT || 3000;
 const CLUSTER_URL = config.CLUSTER_URL || "";
-const connectOptions: ConnectOptions = {
-  dbName: "products",
-  serverApi: { version: "1", deprecationErrors: true, strict: true }
-};
+const CLUSTER_URL_TEST = config.CLUSTER_URL_TEST || "";
+
 
 const run = async () => {
-  logger.info(`=== connecting to : ${config.CLUSTER_URL} ===`);
+  
+  let connectOptions: ConnectOptions;
+
+  if (config.ENV === "test") {
+    connectOptions = {
+      dbName: "products_test",
+      serverApi: { version: "1", deprecationErrors: true, strict: true }
+    };
+    await connect(CLUSTER_URL_TEST, connectOptions);
+    logger.info(`CONNECTING TO ${CLUSTER_URL_TEST}`);
+  } else {
+
+    connectOptions = {
+      dbName: "products",
+      serverApi: { version: "1", deprecationErrors: true, strict: true }
+    };
+    await connect(CLUSTER_URL, connectOptions);
+    logger.info(`CONNECTING TO ${CLUSTER_URL}`);
+  }
 
   // await seed(); // Run this to seed the database
-
-  await connect(CLUSTER_URL, connectOptions);
 }
+
 
 run().catch(err => logger.error(err));
 
