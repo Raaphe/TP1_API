@@ -14,7 +14,8 @@ export class ProtectedProductController {
 
     // DELETE V2
     static async deleteProductV2(req: Request, res: Response) {
-        var id: string = req.body.id;
+        var id: string = req.params.id;
+        
         var resObject = await ProductService.deleteProductByIdV2(id);
 
         return res.status(resObject.code).json({message: resObject.message})
@@ -68,7 +69,7 @@ export class ProtectedProductController {
 
     // POST V2
     static async createProductV2(req: Request, res: Response) {
-        try {
+        try {        
             var product : IProduct = {
                 _id: req.body._id,
                 description: req.body.description,
@@ -77,7 +78,7 @@ export class ProtectedProductController {
                 quantity: req.body.quantity
             };
 
-            let resObject = await ProductService.updateProductV2(product);
+            let resObject = await ProductService.createProductV2(product);
             return res.status(resObject.code).json(resObject);
         } catch(e) {
             return res.status(500).json({"message": "error updating product try again later."});

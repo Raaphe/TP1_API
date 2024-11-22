@@ -7,7 +7,6 @@ import productRoutesV2 from './routes/v2/product.v2.route';
 import productRoutesV1 from './routes/v1/product.route';
 import authRoutes from './routes/v2/auth.route';
 import { errorMiddleware } from './middlewares/error.middleware';
-import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import AuthenticationFilter from './middlewares/auth.middleware';
 import { config } from './config/config';
@@ -78,12 +77,14 @@ app.use('/api/docs', router);
 
 
 // V1
+app.use(api_prefix_v1, productRoutesV1);
 app.use(api_prefix_v1, filter.authFilter, protectedProductsRouteV1);
-app.use(api_prefix_v1, protectedProductsRouteV1);
+
 
 // V2
+app.use(api_prefix_v2, productRoutesV2);
 app.use(api_prefix_v2, filter.authFilter, protectedProductsRouteV2);
-app.use(api_prefix_v2, protectedProductsRouteV2);
+
 
 // BOTH
 app.use("/api", authRoutes);

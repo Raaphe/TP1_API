@@ -3,6 +3,7 @@ import Product from "../models/product.model";
 import GetProductsPageDto from "../payloads/dto/getProductPage.dto";
 import { IProduct } from "../interfaces/product.interface";
 import { ModelContext } from "../models/jsonModel/ModelContext";
+import mongoose from "mongoose";
 
 export class ProductService {
 
@@ -120,15 +121,36 @@ export class ProductService {
      */
     static async getAllProductsV2(dto: GetProductsPageDto): Promise<ResponseObject<IProduct[]>> {
         try {
+            const { minPrice, maxPrice, minStock, maxStock } = dto;
+    
+            if (!this.isValidRange(minPrice, maxPrice, minStock, maxStock)) {
+                return {
+                    code: 400,
+                    message: "Invalid range",
+                    data: []
+                };
+            }
+    
+            const query: Record<string, any> = {};
+    
+            if (this.isNumeric(minPrice)) {
+                query.price = { $gte: minPrice, $lte: maxPrice };
+            }
+            if (this.isNumeric(minStock)) {
+                query.quantity = { $gte: minStock, $lte: maxStock };
+            }
+    
+            const products = await Product.find(query);
+    
             return {
                 code: 200,
                 message: "Successfully fetched products",
-                data: await Product.find({ "price": { "$gt": dto.minPrice, "$lte": dto.maxPrice }, "quantity": { "$gt": dto.minStock, "$lte": dto.maxStock } })
+                data: products
             };
-        } catch (e) {
+        } catch (e: any) {
             return {
-                code: 500,
-                message: `Successfully fetched products \n${e}`,
+                code: 400,
+                message: `Internal Server Error: ${e.message}`,
                 data: []
             };
         }
@@ -138,10 +160,10 @@ export class ProductService {
      * PUT PRODUCTS v2.
      * @param product The product to save.
      */
-    static async updateProductV2(product: IProduct) : Promise<ResponseObject<IProduct | null>> {        
+    static async updateProductV2(product: IProduct): Promise<ResponseObject<IProduct | null>> {
         try {
 
-            let res: ResponseObject<IProduct | null> = {code: 0,message: "", data: null};
+            let res: ResponseObject<IProduct | null> = { code: 0, message: "", data: null };
 
             if (product.quantity < 0 || product.price < 0 || (product.name.length < 2 && product.name.length > 50)) {
                 res.code = 400;
@@ -150,11 +172,11 @@ export class ProductService {
             }
 
             let updatedProduct = await Product.updateOne(
-                {"_id": product._id}, 
+                { "_id": product._id },
                 product,
                 (err: any, docs: any) => {
                     if (err) {
-                        throw new Error(err +  "\nError saving document.")
+                        throw new Error(err + "\nError saving document.")
                     } else {
                         console.log(`+=== Saved Doc :\n${docs}\n===+`);
                     }
@@ -162,9 +184,9 @@ export class ProductService {
             ).then((_: any) => {
                 return product;
             })
-            .catch((e: string) => {
-                throw new Error(e +  "\nError calling cluster.")
-            });
+                .catch((e: string) => {
+                    throw new Error(e + "\nError calling cluster.")
+                });
 
             res.code = 200;
             res.data = updatedProduct;
@@ -172,34 +194,42 @@ export class ProductService {
             return res;
         } catch (e) {
             console.error(e);
-            return {   
+            return {
                 code: 500,
                 message: e as string,
                 data: null
             };
         }
     }
-
     /**
      * POST PRODUCTS v2.
      * @param product The product to save.
      */
-    static async createProductV2(product: IProduct): Promise<IProduct | null> {
+    static async createProductV2(product: IProduct): Promise<ResponseObject<IProduct | null>> {
         try {
-            if (product.quantity < 0 || product.price < 0 || (product.name.length < 2 && product.name.length > 50)) {
-                
-                return null;
+            console.log(product);
+
+            // Validate input
+            if (product.quantity < 0 || product.price < 0 ||
+                product.name.length < 2 || product.name.length > 50) {
+                return { code: 400, message: "Invalid Request", data: null };
             }
-            const result = await Product.create(product);
+
+            // Generate a new ObjectId
+            const productId = new mongoose.Types.ObjectId();
+
+            // Create a new product with the generated id
+            const result = await Product.create({ ...product, _id: productId });
+
             console.log(`+=== Saved Doc :\n${result}\n===+`);
-            return result;
+
+            return { code: 200, message: "Created Successfully", data: result };
         } catch (e) {
             console.error(e);
             throw new Error('Error creating product');
         }
     }
-    
-    
+
     /**
      * DELETE PRODUCTS v2
      * @param productId The product id to delete.
@@ -208,11 +238,19 @@ export class ProductService {
     static async deleteProductByIdV2(productId: string): Promise<ResponseObject<Boolean>> {
         try {
             let res = await Product.deleteOne({ "_id": productId });
-            return {
-                code: 200,
-                message: "Successfully deleted.",
-                data: 0 <= res.deletedCount
-            };
+            if (res.acknowledged && res.deletedCount >= 1) {
+                return {
+                    code: 200,
+                    message: "Successfully deleted.",
+                    data: 0 <= res.deletedCount
+                };
+            } else {
+                return {
+                    code: 404,
+                    message: "No Products Found.",
+                    data: false
+                };
+            }
         } catch (e) {
             return {
                 code: 500,
@@ -221,4 +259,13 @@ export class ProductService {
             };
         }
     }
+
+    private static isValidRange(...values: (number | undefined)[]): boolean {
+        return values.every(this.isNumeric);
+    }
+    
+    private static isNumeric(value: unknown): value is number | null {
+        return typeof value === 'number' || (typeof value === 'string' &&  /^-?\d*\.?\d+$/.test(value));
+    }
+
 }

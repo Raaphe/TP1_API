@@ -25,7 +25,7 @@ const router = Router();
  *       404:
  *         description: Product not found.
  */
-router.delete('/products/:id', ProtectedProductController.deleteProductV2);
+router.delete('/product/:id', ProtectedProductController.deleteProductV2);
 
 /**
  * @swagger
