@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 import RegistrationDTO from '../payloads/dto/register.dto';
 import LoginDTO from '../payloads/dto/login.dto';
-import { User } from '../interfaces/user.interface';
 import { verifyPassword } from '../utils/security.utils';
 import { config } from "../config/config"
 import { ModelContext } from '../models/jsonModel/ModelContext';

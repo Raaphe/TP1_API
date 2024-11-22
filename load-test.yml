@@ -1,0 +1,12 @@
+config:
+  target: "http://localhost:3000" 
+  phases:
+    - duration: 60               
+      arrivalRate: 10            
+    - duration: 120
+      arrivalRate: 50            
+
+scenarios:
+  - flow:
+      - get:
+          url: "/api/v2/products"

@@ -13,9 +13,8 @@ export default class AuthenticationFilter {
             "/docs"
         ];
 
-        // Check if the request URL matches any pattern in the whitelist
         if (whitelist.some(path => req.url.startsWith(path))) {
-            return next(); // Skip authentication and proceed to the next middleware
+            return next(); 
         }
 
         const authHeader = req.headers['authorization'];
@@ -38,10 +37,9 @@ export default class AuthenticationFilter {
         try {
             const decoded = jwt.verify(token, config.JWT_SECRET);
             console.log("Token is valid", decoded);
-            next(); // Token is valid, proceed to the next middleware
+            next(); 
         } catch (error) {
-            console.error("Token verification failed", error);
-            return res.status(403).json({ message: 'Invalid or expired token' });
+            return res.status(401).json({ message: 'Invalid or expired token' });
         }
     }
 }
